@@ -12,16 +12,15 @@ from pfeed.enums import (
     DataAccessType,
     DataCategory,
     DataProviderType,
-    DataSource,
     DataType,
 )
 from pfeed.source import DataProviderSource, SourceMetadata
-from pfeed.sources.bybit.batch_api import BatchAPI
-from pfeed.sources.bybit.stream_api import StreamAPI
+from pfeed_bybit.batch_api import BatchAPI
+from pfeed_bybit.stream_api import StreamAPI
 
 
 class BybitSource(DataProviderSource):
-    name: ClassVar[DataSource] = DataSource.BYBIT
+    name: ClassVar[str] = "BYBIT"
     METADATA: ClassVar[SourceMetadata] = SourceMetadata(
         data_origin="https://www.bybit.com",
         data_categories={

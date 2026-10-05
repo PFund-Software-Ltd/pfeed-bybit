@@ -1,6 +1,6 @@
-from pfeed.sources.bybit.client import Bybit
-from pfeed.sources.bybit.data_models import market_data_model
-from pfeed.sources.bybit.feeds import market_feed
+from pfeed_bybit.client import Bybit
+from pfeed_bybit.data_models import market_data_model
+from pfeed_bybit.feeds import market_feed
 
 __all__ = [
     "Bybit",

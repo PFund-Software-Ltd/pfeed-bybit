@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from pfund.venues.bybit.product import BybitProduct
 
     from pfeed.feeds.streaming_feed_mixin import RawMessage, WebSocketName
-    from pfeed.sources.bybit.market_data_model import BybitMarketDataModel
+    from pfeed_bybit.data_models.market_data_model import BybitMarketDataModel
 
     BybitProductCategory: TypeAlias = BybitProduct.Category
     ChannelKey: TypeAlias = tuple[BybitProductCategory, FullDataChannel]

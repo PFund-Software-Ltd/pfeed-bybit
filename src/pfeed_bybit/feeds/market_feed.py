@@ -13,8 +13,8 @@ from pfund.venues.bybit.product import BybitProduct
 
 from pfeed.feeds.market_feed import MarketFeed
 from pfeed.feeds.streaming_feed_mixin import StreamingFeedMixin
-from pfeed.sources.bybit.data_models.market_data_model import BybitMarketDataModel
-from pfeed.sources.bybit.source import BybitSource
+from pfeed_bybit.data_models.market_data_model import BybitMarketDataModel
+from pfeed_bybit.source import BybitSource
 
 
 class BybitMarketFeed(StreamingFeedMixin, MarketFeed):
