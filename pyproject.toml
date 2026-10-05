@@ -1,0 +1,19 @@
+[project]
+name = "pfeed-bybit"
+version = "0.0.1"
+description = "Official Bybit data source plugin for pfeed: historical and live market data from Bybit."
+readme = "README.md"
+authors = [
+    { name = "softwareentrepreneer", email = "softwareentrepreneer+pfeed-bybit@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "pfeed>=0.0.20",
+]
+
+[project.entry-points."pfeed.sources"]
+bybit = "pfeed_bybit"
+
+[build-system]
+requires = ["uv_build>=0.12.23,<0.13.0"]
+build-backend = "uv_build"
