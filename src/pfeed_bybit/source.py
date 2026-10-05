@@ -34,6 +34,7 @@ class BybitSource(DataProviderSource):
                 ],
             },
         },
+        feed_capabilities={DataCategory.MARKET_DATA: {"download", "stream"}},
         provider_type=DataProviderType.VENUE,
         access_type=DataAccessType.FREE,
         api_key_required=False,
