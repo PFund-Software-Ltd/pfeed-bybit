@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, Literal
 
 if TYPE_CHECKING:
+    from pfeed.feeds.base_feed import BaseFeed
     from pfund.venues.bybit.product import BybitProduct
 
 from pfund.enums.env import Environment
@@ -16,10 +17,11 @@ from pfeed.enums import (
 )
 from pfeed.source import BaseSource, SourceMetadata
 from pfeed_bybit.batch_api import BatchAPI
+from pfeed_bybit.feeds.market_feed import BybitMarketFeed
 from pfeed_bybit.stream_api import StreamAPI
 
 
-class BybitSource(BaseSource):
+class Bybit(BaseSource):
     METADATA: ClassVar[SourceMetadata] = SourceMetadata(
         name="BYBIT",
         data_origin="https://www.bybit.com",
@@ -39,11 +41,21 @@ class BybitSource(BaseSource):
         access_type=DataAccessType.FREE,
         start_date="2020-01-01",
     )
+    Feeds: ClassVar[dict[DataCategory, type[BaseFeed]]] = {
+        DataCategory.MARKET_DATA: BybitMarketFeed,
+    }
 
-    def __init__(self):
-        super().__init__()
+    market_feed: BybitMarketFeed
+
+    def __init__(
+        self,
+        pipeline_mode: bool = False,
+        num_workers: int | dict[DataCategory | str, int] | None = None,
+    ):
+        # APIs are set before super().__init__(), which creates the feeds
         self.batch_api = BatchAPI()
         self._stream_apis: dict[Environment, StreamAPI] = {}
+        super().__init__(pipeline_mode=pipeline_mode, num_workers=num_workers)
 
     def get_stream_api(
         self,

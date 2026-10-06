@@ -7,6 +7,7 @@ if TYPE_CHECKING:
     from pfund.venues._apis.typing import ResponseData
 
     from pfeed.feeds.streaming_feed_mixin import RawMessage
+    from pfeed_bybit.source import Bybit
 
 import polars as pl
 from pfund.venues.bybit.product import BybitProduct
@@ -14,12 +15,10 @@ from pfund.venues.bybit.product import BybitProduct
 from pfeed.feeds.market_feed import MarketFeed
 from pfeed.feeds.streaming_feed_mixin import StreamingFeedMixin
 from pfeed_bybit.data_models.market_data_model import BybitMarketDataModel
-from pfeed_bybit.source import BybitSource
 
 
 class BybitMarketFeed(StreamingFeedMixin, MarketFeed):
-    DataSource: ClassVar[type[BybitSource]] = BybitSource
-    data_source: BybitSource
+    data_source: Bybit
 
     DataModel: ClassVar[type[BybitMarketDataModel]] = BybitMarketDataModel
     date_columns_in_raw_data: ClassVar[list[str]] = ["timestamp"]
