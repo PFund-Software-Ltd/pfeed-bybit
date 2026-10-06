@@ -14,14 +14,14 @@ from pfeed.enums import (
     DataProviderType,
     DataType,
 )
-from pfeed.source import DataProviderSource, SourceMetadata
+from pfeed.source import BaseSource, SourceMetadata
 from pfeed_bybit.batch_api import BatchAPI
 from pfeed_bybit.stream_api import StreamAPI
 
 
-class BybitSource(DataProviderSource):
-    name: ClassVar[str] = "BYBIT"
+class BybitSource(BaseSource):
     METADATA: ClassVar[SourceMetadata] = SourceMetadata(
+        name="BYBIT",
         data_origin="https://www.bybit.com",
         data_categories={
             DataCategory.MARKET_DATA: {
@@ -37,14 +37,13 @@ class BybitSource(DataProviderSource):
         feed_capabilities={DataCategory.MARKET_DATA: {"download", "stream"}},
         provider_type=DataProviderType.VENUE,
         access_type=DataAccessType.FREE,
-        api_key_required=False,
         start_date="2020-01-01",
     )
 
-    def get_batch_api(self) -> BatchAPI:
-        if self._batch_api is None:
-            self._batch_api = BatchAPI()
-        return self._batch_api
+    def __init__(self):
+        super().__init__()
+        self.batch_api = BatchAPI()
+        self._stream_apis: dict[Environment, StreamAPI] = {}
 
     def get_stream_api(
         self,
@@ -53,14 +52,12 @@ class BybitSource(DataProviderSource):
             Environment.LIVE,
             "PAPER",
             "LIVE",
-        ]
-        | None = None,
+        ],
     ) -> StreamAPI:
-        if self._stream_api is None:
-            if env is None:
-                raise ValueError("env must be provided when creating stream API")
-            self._stream_api = StreamAPI(env=env)
-        return self._stream_api
+        env = Environment(env.upper())
+        if env not in self._stream_apis:
+            self._stream_apis[env] = StreamAPI(env=env)
+        return self._stream_apis[env]
 
     def create_product(
         self, basis: str, symbol: str = "", **specs: Any

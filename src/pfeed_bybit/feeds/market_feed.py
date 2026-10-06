@@ -54,7 +54,7 @@ class BybitMarketFeed(StreamingFeedMixin, MarketFeed):
     def _download_impl(
         self, data_model: BybitMarketDataModel, data_resolution: Resolution
     ) -> pl.LazyFrame | None:
-        batch_api = self.data_source.get_batch_api()
+        batch_api = self.data_source.batch_api
         assert data_model.start_date == data_model.end_date, (
             f"{self.name} download() only supports downloading data for a single day"
         )
