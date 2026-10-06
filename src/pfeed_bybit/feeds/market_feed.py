@@ -4,10 +4,12 @@ from typing import TYPE_CHECKING, ClassVar
 
 if TYPE_CHECKING:
     from pfund.datas.resolution import Resolution
+    from pfund.enums.env import Environment
     from pfund.venues._apis.typing import ResponseData
 
     from pfeed.feeds.streaming_feed_mixin import RawMessage
     from pfeed_bybit.source import Bybit
+    from pfeed_bybit.stream_api import StreamAPI
 
 import polars as pl
 from pfund.venues.bybit.product import BybitProduct
@@ -18,13 +20,18 @@ from pfeed_bybit.data_models.market_data_model import BybitMarketDataModel
 
 
 class BybitMarketFeed(StreamingFeedMixin, MarketFeed):
+    # verbs Bybit supports; same as the default (every verb in MarketFeed.Capability), listed to show how to opt out
+    capabilities: ClassVar[set[MarketFeed.Capability]] = {
+        MarketFeed.Capability.download,
+        MarketFeed.Capability.stream,
+    }
     data_source: Bybit
 
     DataModel: ClassVar[type[BybitMarketDataModel]] = BybitMarketDataModel
     date_columns_in_raw_data: ClassVar[list[str]] = ["timestamp"]
 
     @staticmethod
-    def _normalize_raw_data(df: pl.LazyFrame) -> pl.LazyFrame:
+    def _normalize_downloaded_data(df: pl.LazyFrame) -> pl.LazyFrame:
         """Normalize raw Bybit DataFrame into a consistent format.
 
         Args:
@@ -66,6 +73,9 @@ class BybitMarketFeed(StreamingFeedMixin, MarketFeed):
             date=start_date,
         )
         return data
+
+    def _get_stream_api(self, env: Environment) -> StreamAPI:
+        return self.data_source.get_stream_api(env)
 
     @staticmethod
     def _parse_message(product: BybitProduct, msg: RawMessage) -> ResponseData:

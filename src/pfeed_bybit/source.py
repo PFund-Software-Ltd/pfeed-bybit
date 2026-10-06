@@ -36,7 +36,6 @@ class Bybit(BaseSource):
                 ],
             },
         },
-        feed_capabilities={DataCategory.MARKET_DATA: {"download", "stream"}},
         provider_type=DataProviderType.VENUE,
         access_type=DataAccessType.FREE,
         start_date="2020-01-01",
