@@ -19,16 +19,16 @@ from pfeed.feeds.streaming_feed_mixin import StreamingFeedMixin
 from pfeed_bybit.data_models.market_data_model import BybitMarketDataModel
 
 
-class BybitMarketFeed(StreamingFeedMixin, MarketFeed):
-    # verbs Bybit supports; same as the default (every verb in MarketFeed.Capability), listed to show how to opt out
+# TODO: add back StreamingFeedMixin
+class BybitMarketFeed(MarketFeed):
+    data_source: Bybit
+    DataModel: ClassVar[type[BybitMarketDataModel]] = BybitMarketDataModel
     capabilities: ClassVar[set[MarketFeed.Capability]] = {
         MarketFeed.Capability.download,
-        MarketFeed.Capability.stream,
+        # TODO: re-enable stream capability
+        # MarketFeed.Capability.stream,
     }
-    data_source: Bybit
-
-    DataModel: ClassVar[type[BybitMarketDataModel]] = BybitMarketDataModel
-    date_columns_in_raw_data: ClassVar[list[str]] = ["timestamp"]
+    downloaded_data_date_cols: ClassVar[list[str]] = ["timestamp"]
 
     @staticmethod
     def _normalize_downloaded_data(df: pl.LazyFrame) -> pl.LazyFrame:
@@ -74,41 +74,41 @@ class BybitMarketFeed(StreamingFeedMixin, MarketFeed):
         )
         return data
 
-    def _get_stream_api(self, env: Environment) -> StreamAPI:
-        return self.data_source.get_stream_api(env)
-
-    @staticmethod
-    def _parse_message(product: BybitProduct, msg: RawMessage) -> ResponseData:
-        from pfund.venues.bybit._ws_apis.ws_api_base import BybitBaseWebSocketAPI
-        from pfund.venues.bybit.ws_api import BybitWebSocketAPI
-
-        assert product.category is not None, "product.category is not initialized"
-        WebSocketAPI: type[BybitBaseWebSocketAPI] = BybitWebSocketAPI.APIS[
-            product.category
-        ]
-
-        channel: str = msg["topic"]
-        if channel.startswith("kline"):
-            return WebSocketAPI._parse_candlestick(msg)
-        elif channel.startswith("publicTrade"):
-            return WebSocketAPI._parse_tradebook(msg)
-        # TODO: handle orderbook
-        # elif channel.startswith('orderbook'):
-        #     return WebSocketAPI._parse_orderbook(msg)
-        else:
-            raise NotImplementedError(
-                f"{WebSocketAPI.venue} {product.category} {channel=} is not supported"
-            )
-
-    @staticmethod
-    def _normalize_timestamps(msg: ResponseData) -> ResponseData:
-        """Bybit timestamps are in milliseconds, convert to nanoseconds"""
-        msg["ts"] = int(msg["ts"] * 10**6)
-        data = msg["data"]
-        if "ts" in data:
-            data["ts"] = int(data["ts"] * 10**6)
-        if "start_ts" in data:
-            data["start_ts"] = int(data["start_ts"] * 10**6)
-        if "end_ts" in data:
-            data["end_ts"] = int(data["end_ts"] * 10**6)
-        return msg
+#     def _get_stream_api(self, env: Environment) -> StreamAPI:
+#         return self.data_source.get_stream_api(env)
+#
+#     @staticmethod
+#     def _parse_streaming_message(product: BybitProduct, msg: RawMessage) -> ResponseData:
+#         from pfund.venues.bybit._ws_apis.ws_api_base import BybitBaseWebSocketAPI
+#         from pfund.venues.bybit.ws_api import BybitWebSocketAPI
+#
+#         assert product.category is not None, "product.category is not initialized"
+#         WebSocketAPI: type[BybitBaseWebSocketAPI] = BybitWebSocketAPI.APIS[
+#             product.category
+#         ]
+#
+#         channel: str = msg["topic"]
+#         if channel.startswith("kline"):
+#             return WebSocketAPI._parse_candlestick(msg)
+#         elif channel.startswith("publicTrade"):
+#             return WebSocketAPI._parse_tradebook(msg)
+#         # TODO: handle orderbook
+#         # elif channel.startswith('orderbook'):
+#         #     return WebSocketAPI._parse_orderbook(msg)
+#         else:
+#             raise NotImplementedError(
+#                 f"{WebSocketAPI.venue} {product.category} {channel=} is not supported"
+#             )
+#
+#     @staticmethod
+#     def _normalize_streaming_timestamp(msg: ResponseData) -> ResponseData:
+#         """Bybit timestamps are in milliseconds, convert to nanoseconds"""
+#         msg["ts"] = int(msg["ts"] * 10**6)
+#         data = msg["data"]
+#         if "ts" in data:
+#             data["ts"] = int(data["ts"] * 10**6)
+#         if "start_ts" in data:
+#             data["start_ts"] = int(data["start_ts"] * 10**6)
+#         if "end_ts" in data:
+#             data["end_ts"] = int(data["end_ts"] * 10**6)
+#         return msg
