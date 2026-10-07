@@ -24,7 +24,7 @@ from pfeed_bybit.stream_api import StreamAPI
 class Bybit(BaseSource):
     METADATA: ClassVar[SourceMetadata] = SourceMetadata(
         name="BYBIT",
-        data_origin="https://www.bybit.com",
+        url="https://www.bybit.com",
         data_categories={
             DataCategory.MARKET_DATA: {
                 DataType.TICK: [
