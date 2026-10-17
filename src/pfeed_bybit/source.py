@@ -1,14 +1,13 @@
-# pyright: reportArgumentType=false
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar, Literal
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, cast
 
 if TYPE_CHECKING:
-    from pfeed.feeds.base_feed import BaseFeed
+    from pfeed.base.feed import BaseFeed
     from pfund.venues.bybit.product import BybitProduct
 
-from pfund.enums.env import Environment
-
+import httpx2
+from pfeed.dataflow.retry_policy import RetryPolicy
 from pfeed.enums import (
     DataAccessType,
     DataCategory,
@@ -16,13 +15,18 @@ from pfeed.enums import (
     DataType,
 )
 from pfeed.source import BaseSource, SourceMetadata
+from pfund.enums.env import Environment
+
 from pfeed_bybit.batch_api import BatchAPI
-from pfeed_bybit.feeds.market_feed import BybitMarketFeed
+from pfeed_bybit.market.feed import BybitMarketFeed
 from pfeed_bybit.stream_api import StreamAPI
 
 
 class Bybit(BaseSource):
-    METADATA: ClassVar[SourceMetadata] = SourceMetadata(
+    Feeds: ClassVar[dict[DataCategory, type[BaseFeed]]] = {
+        DataCategory.MARKET_DATA: BybitMarketFeed,
+    }
+    metadata: ClassVar[SourceMetadata] = SourceMetadata(
         name="BYBIT",
         url="https://www.bybit.com",
         data_categories={
@@ -40,11 +44,8 @@ class Bybit(BaseSource):
         access_type=DataAccessType.FREE,
         start_date="2020-01-01",
     )
-    Feeds: ClassVar[dict[DataCategory, type[BaseFeed]]] = {
-        DataCategory.MARKET_DATA: BybitMarketFeed,
-    }
-
-    market_feed: BybitMarketFeed
+    # timeouts and connection errors; HTTP error responses (e.g. 5xx) are not retried
+    retry_policy: ClassVar[RetryPolicy] = RetryPolicy(retry_on=(httpx2.TransportError,))
 
     def __init__(
         self,
@@ -65,14 +66,16 @@ class Bybit(BaseSource):
             "LIVE",
         ],
     ) -> StreamAPI:
-        env = Environment(env.upper())
-        if env not in self._stream_apis:
-            self._stream_apis[env] = StreamAPI(env=env)
-        return self._stream_apis[env]
+        # the Literal in the signature already limits env to PAPER/LIVE
+        environment = cast(
+            "Literal[Environment.PAPER, Environment.LIVE]", Environment(env.upper())
+        )
+        if environment not in self._stream_apis:
+            self._stream_apis[environment] = StreamAPI(env=environment)
+        return self._stream_apis[environment]
 
-    def create_product(
-        self, basis: str, symbol: str = "", **specs: Any
-    ) -> BybitProduct:
+    @classmethod
+    def create_product(cls, basis: str, symbol: str = "", **specs: Any) -> BybitProduct:
         from pfund.venues.bybit.venue import Bybit
 
         return Bybit.create_product(basis, symbol=symbol, **specs)

@@ -82,34 +82,16 @@ class BatchAPI:
 
     @staticmethod
     def _get(url: str, params: dict[str, Any] | None = None) -> bytes | None:
-        import time
+        """Returns the file content, or None if Bybit has no file at the url (404), e.g. a date with no data.
 
+        Any other error raises; the faucet retries the ones listed in Bybit.retry_policy.
+        """
         import httpx2
-        from pfund_kit.style import RichColor, TextStyle, cprint
 
-        num_retries: int = 3
-        while num_retries:
-            num_retries -= 1
-            try:
-                response: Response = httpx2.get(url, params=params)
-                result = response.raise_for_status().content
-                return result
-            except httpx2.RequestError as exc:
-                cprint(
-                    f"RequestError: failed to get data from {url}, {exc=}",
-                    style=TextStyle.BOLD + RichColor.RED,
-                )
-            except Exception as exc:
-                cprint(
-                    f"Error: failed to get data from {url}, {exc=}",
-                    style=TextStyle.BOLD + RichColor.RED,
-                )
-            time.sleep(1)
-        else:
-            cprint(
-                f"Failed to get data from {url}", style=TextStyle.BOLD + RichColor.RED
-            )
+        response: Response = httpx2.get(url, params=params)
+        if response.status_code == httpx2.codes.NOT_FOUND:
             return None
+        return response.raise_for_status().content
 
     def _create_url(
         self, product: BybitProduct, resolution: Resolution, date: str | datetime.date
@@ -120,9 +102,9 @@ class BatchAPI:
         return url
 
     def _convert_orderbook_data_to_df(self, zipped_data: bytes) -> pl.DataFrame:
-        from pfeed.enums.compression import Compression
+        from pfeed.utils.compression import decompress
 
-        data = Compression.decompress(zipped_data)
+        data = decompress(zipped_data)
         df = pl.read_ndjson(data)
         # flatten nested structs (one level) to mimic pd.json_normalize
         struct_cols = [

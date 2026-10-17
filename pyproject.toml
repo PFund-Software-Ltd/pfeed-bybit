@@ -6,14 +6,15 @@ readme = "README.md"
 authors = [
     { name = "softwareentrepreneer", email = "softwareentrepreneer+pfeed-bybit@gmail.com" }
 ]
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 dependencies = [
     "pfeed>=0.0.20",
+    # "pfund-bybit>=0.0.1.dev1"
 ]
 
 [project.entry-points."pfeed.sources"]
 bybit = "pfeed_bybit:Bybit"
 
 [build-system]
-requires = ["uv_build>=0.12.23,<0.13.0"]
+requires = ["uv_build>=0.13.1,<0.14.0"]
 build-backend = "uv_build"

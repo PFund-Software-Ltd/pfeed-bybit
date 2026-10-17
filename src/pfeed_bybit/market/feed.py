@@ -1,34 +1,31 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, cast
 
 if TYPE_CHECKING:
-    from pfund.datas.resolution import Resolution
-    from pfund.enums.env import Environment
-    from pfund.venues._apis.typing import ResponseData
+    from pfeed.market.requests.base_request import MarketFeedBaseRequest
 
-    from pfeed.feeds.streaming_feed_mixin import RawMessage
     from pfeed_bybit.source import Bybit
-    from pfeed_bybit.stream_api import StreamAPI
 
+import pfeed as pe
 import polars as pl
-from pfund.venues.bybit.product import BybitProduct
 
-from pfeed.feeds.market_feed import MarketFeed
-from pfeed.feeds.streaming_feed_mixin import StreamingFeedMixin
-from pfeed_bybit.data_models.market_data_model import BybitMarketDataModel
+from pfeed_bybit.market.data_model import BybitMarketDataModel
 
 
 # TODO: add back StreamingFeedMixin
-class BybitMarketFeed(MarketFeed):
-    data_source: Bybit
-    DataModel: ClassVar[type[BybitMarketDataModel]] = BybitMarketDataModel
-    capabilities: ClassVar[set[MarketFeed.Capability]] = {
-        MarketFeed.Capability.download,
+class BybitMarketFeed(
+    pe.MarketFeed["Bybit", "MarketFeedBaseRequest", BybitMarketDataModel]
+):
+    DataModel: ClassVar[type[BybitMarketDataModel]] = BybitMarketDataModel  # ty: ignore[invalid-mutable-override]
+
+    class Requests(pe.MarketFeed.Requests):  # ty: ignore[invalid-attribute-override]
         # TODO: re-enable stream capability
-        # MarketFeed.Capability.stream,
-    }
+        stream = None
+
     downloaded_data_date_cols: ClassVar[list[str]] = ["timestamp"]
+    # Bybit's batch API serves one file per product per day
+    download_dataflow_per_date: ClassVar[bool] = True
 
     @staticmethod
     def _normalize_downloaded_data(df: pl.LazyFrame) -> pl.LazyFrame:
@@ -57,22 +54,21 @@ class BybitMarketFeed(MarketFeed):
             pl.col("volume").cast(pl.Float64),
         )
 
+    @staticmethod
     def _download_impl(
-        self, data_model: BybitMarketDataModel, data_resolution: Resolution
+        request: MarketFeedBaseRequest, data_model: BybitMarketDataModel
     ) -> pl.LazyFrame | None:
-        batch_api = self.data_source.batch_api
+        data_source = cast("Bybit", request.data_source)
         assert data_model.start_date == data_model.end_date, (
-            f"{self.name} download() only supports downloading data for a single day"
+            f"{data_source.name} download() only supports downloading data for a single day"
         )
-        product = data_model.product
-        start_date = data_model.start_date
-        self.logger.debug(f"downloading {product} {data_resolution} on {start_date}")
-        data = batch_api.get_data(
-            product=product,
-            resolution=data_resolution,
-            date=start_date,
+        # data_model.resolution is the target resolution, download the raw data at data_resolution
+        return data_source.batch_api.get_data(
+            product=data_model.product,
+            resolution=request.data_resolution,
+            date=data_model.start_date,
         )
-        return data
+
 
 #     def _get_stream_api(self, env: Environment) -> StreamAPI:
 #         return self.data_source.get_stream_api(env)

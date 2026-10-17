@@ -1,15 +1,16 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal, TypeAlias
+from typing import TYPE_CHECKING, Any, Literal, TypeAlias, cast
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine
 
+    from pfeed.streaming.feed_mixin import RawMessage, WebSocketName
     from pfund.typing import FullDataChannel
+    from pfund.venues._apis.typing import ResponseData
     from pfund.venues.bybit.product import BybitProduct
 
-    from pfeed.feeds.streaming_feed_mixin import RawMessage, WebSocketName
-    from pfeed_bybit.data_models.market_data_model import BybitMarketDataModel
+    from pfeed_bybit.market.data_model import BybitMarketDataModel
 
     BybitProductCategory: TypeAlias = BybitProduct.Category
     ChannelKey: TypeAlias = tuple[BybitProductCategory, FullDataChannel]
@@ -75,7 +76,9 @@ class StreamAPI:
     ):
         from pfund.venues.bybit.product import BybitProduct
 
-        async def _callback(ws_name: WebSocketName, msg: RawMessage):
+        async def _callback(ws_name: WebSocketName, data: RawMessage | ResponseData):
+            # raw_msg=True below, so data is always the raw message, never the parsed ResponseData
+            msg = cast("RawMessage", data)
             if "topic" in msg:
                 channel: str = msg["topic"]
                 category = ws_name.split("_")[1]
@@ -92,4 +95,4 @@ class StreamAPI:
                 channel_key: tuple[str, str] | None = None
             await faucet_callback(ws_name, msg, channel_key)
 
-        self._ws_api.set_callback(_callback, raw_msg=True)  # pyright: ignore[reportArgumentType]
+        self._ws_api.set_callback(_callback, raw_msg=True)
