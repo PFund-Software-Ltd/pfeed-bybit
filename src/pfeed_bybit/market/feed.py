@@ -14,9 +14,7 @@ from pfeed_bybit.market.data_model import BybitMarketDataModel
 
 
 # TODO: add back StreamingFeedMixin
-class BybitMarketFeed(
-    pe.MarketFeed["Bybit", "MarketFeedBaseRequest", BybitMarketDataModel]
-):
+class BybitMarketFeed(pe.MarketFeed["Bybit", "MarketFeedBaseRequest", BybitMarketDataModel]):
     DataModel: ClassVar[type[BybitMarketDataModel]] = BybitMarketDataModel  # ty: ignore[invalid-mutable-override]
 
     class Requests(pe.MarketFeed.Requests):  # ty: ignore[invalid-attribute-override]
@@ -63,7 +61,7 @@ class BybitMarketFeed(
             f"{data_source.name} download() only supports downloading data for a single day"
         )
         # data_model.resolution is the target resolution, download the raw data at data_resolution
-        return data_source.batch_api.get_data(
+        return data_source.get_batch_api().get_data(
             product=data_model.product,
             resolution=request.data_resolution,
             date=data_model.start_date,

@@ -18,3 +18,12 @@ bybit = "pfeed_bybit:Bybit"
 [build-system]
 requires = ["uv_build>=0.13.1,<0.14.0"]
 build-backend = "uv_build"
+
+[tool.pytest]
+markers = [
+    "network: Run tests that call Bybit's real servers",
+    "rate_limit: Run tests that can be rate-limited",
+]
+strict_markers = true
+addopts = ["--import-mode=importlib"]
+testpaths = ["tests"]

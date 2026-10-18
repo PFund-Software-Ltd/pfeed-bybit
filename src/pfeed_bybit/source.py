@@ -47,15 +47,22 @@ class Bybit(BaseSource):
     # timeouts and connection errors; HTTP error responses (e.g. 5xx) are not retried
     retry_policy: ClassVar[RetryPolicy] = RetryPolicy(retry_on=(httpx2.TransportError,))
 
+    market_feed: BybitMarketFeed
+
     def __init__(
         self,
         pipeline_mode: bool = False,
         num_workers: int | dict[DataCategory | str, int] | None = None,
     ):
         # APIs are set before super().__init__(), which creates the feeds
-        self.batch_api = BatchAPI()
+        self._batch_api: BatchAPI | None = None
         self._stream_apis: dict[Environment, StreamAPI] = {}
         super().__init__(pipeline_mode=pipeline_mode, num_workers=num_workers)
+
+    def get_batch_api(self) -> BatchAPI:
+        if self._batch_api is None:
+            self._batch_api = BatchAPI()
+        return self._batch_api
 
     def get_stream_api(
         self,

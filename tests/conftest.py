@@ -1,6 +1,5 @@
-import pytest
-
 import pfeed as pe
+import pytest
 
 
 @pytest.fixture
