@@ -15,7 +15,7 @@ from pfeed.enums import (
     DataType,
 )
 from pfeed.source import BaseSource, SourceMetadata
-from pfund.enums.env import Environment
+from pfund_blocks.enums.env import Environment
 
 from pfeed_bybit.batch_api import BatchAPI
 from pfeed_bybit.market.feed import BybitMarketFeed

@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 import logging
 
 from pfund.datas.resolution import Resolution
-from pfund.enums.env import Environment
+from pfund_blocks.enums.env import Environment
 
 
 class StreamAPI:
