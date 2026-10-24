@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     import pfeed as pe
 
 import pytest
-from pfund.datas.resolution import Resolution
+from pfund_blocks.resolution import Resolution
 
 pytestmark = pytest.mark.network
 

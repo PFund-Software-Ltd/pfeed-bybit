@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 import logging
 
-from pfund.datas.resolution import Resolution
+from pfund_blocks.resolution import Resolution
 from pfund_blocks.enums.env import Environment
 
 

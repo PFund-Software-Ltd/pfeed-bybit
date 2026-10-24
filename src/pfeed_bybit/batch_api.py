@@ -4,13 +4,13 @@ from typing import TYPE_CHECKING, Any, ClassVar
 
 if TYPE_CHECKING:
     from httpx2 import Response
-    from pfund.datas.resolution import Resolution
+    from pfund_blocks.resolution import Resolution
     from pfund.venues.bybit.product import BybitProduct
 
 import datetime
 
 import polars as pl
-from pfund.enums import AssetTypeModifier, CryptoAssetType
+from pfund_blocks.enums.asset_type import AssetTypeModifier, CryptoAssetType
 
 # NOTE: do NOT trust the catalog in https://public.bybit.com/trading/, BTC_USDT_FUTs are missing,
 # e.g. BTCUSDT-22AUG25 is missing in the catalog but its url is valid: https://public.bybit.com/trading/BTCUSDT-22AUG25/

@@ -13,7 +13,7 @@ import pfeed as pe
 import polars as pl
 import pytest
 from pfeed.dataflow.result import RunResult
-from pfund.datas.resolution import Resolution
+from pfund_blocks.resolution import Resolution
 
 pytestmark = pytest.mark.network
 
