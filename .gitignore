@@ -221,3 +221,9 @@ __marimo__/
 # pixi environments
 .pixi/*
 !.pixi/config.toml
+
+# zed settings
+**/.zed/
+
+# macOS
+.DS_Store

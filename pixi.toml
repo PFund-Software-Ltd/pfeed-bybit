@@ -4,16 +4,17 @@ channels = ["conda-forge"]
 name = "pfeed-bybit"
 platforms = ["osx-arm64", "linux-aarch64", "linux-64", "win-64"]
 # NOTE: should match with setup-pixi in ci.yml
-requires-pixi = ">=0.82.0,<0.83.0"
+requires-pixi = ">=0.83.0"
 # FIXME: set it back to "14 days" when the package is stable
 exclude-newer = "0d"
 
 [pypi-exclude-newer]
+uv_build = "0d"
 afterpython = "0d"
-pfund = "0d"
 # pfund-bybit = "0d"
-pfeed=  "0d"
+pfund-blocks = "0d"
 pfund-kit = "0d"
+pfeed=  "0d"
 
 [tasks]
 
@@ -39,29 +40,25 @@ py315 = ["py315", "test"]
 [feature.dev.pypi-dependencies]
 pfeed-bybit = { path = ".", editable = true }
 pfeed = { path = "../..", editable = true }  # TEMP
-pfund = { path = "../../../pfund", editable = true }  # TEMP
-# pfund-bybit = { path = "../pfund-bybit", editable = true }  # TEMP
 pfund-kit = { path = "../../../pfund-kit", editable = true }  # TEMP
+pfund-blocks = { path = "../../../pfund-blocks", editable = true }  # TEMP
+pfund-bybit = { path = "../../../pfund/venues/pfund-bybit", editable = true }  # TEMP
 afterpython = ">=0.4.0"
 
 [feature.test.pypi-dependencies]
 pfeed-bybit = { path = ".", editable = true }
 pfeed = { path = "../..", editable = true }  # TEMP
-pfund = { path = "../../../pfund", editable = true }  # TEMP
 pfund-kit = { path = "../../../pfund-kit", editable = true }  # TEMP
-# pfund-bybit = { path = "../pfund-bybit", editable = true }  # TEMP
+pfund-blocks = { path = "../../../pfund-blocks", editable = true }  # TEMP
+pfund-bybit = { path = "../../../pfund/venues/pfund-bybit", editable = true }  # TEMP
 pytest = ">=9.1.1"
-pytest-cov = ">=7.1.0"
-pytest-mock = ">=3.16.0"
+pytest-mock = ">=3.17.0"
 pytest-xdist = ">=3.8.0"
 pytest-asyncio = ">=1.4.0"
-pytest-recording = ">=0.14.0"
-pytest-markdown-docs = ">=0.9.2"
+# pytest-cov = ">=7.1.0"
+# pytest-recording = ">=0.14.0"
 [feature.test.tasks]
-test = "pytest -n auto -m 'not rate_limit'"
-test-rate-limit = "pytest -m 'rate_limit'"
-test-new = "pytest --record-mode=all"  # record new interactions, useful to update recordings in case data formats returned have changed
-test-ci = "pytest --record-mode=none"  # fail a test if no recording is found
+test = "pytest -n auto"
 
 [feature.py313.dependencies]
 python = "3.13.*"

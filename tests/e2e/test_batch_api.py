@@ -24,7 +24,7 @@ SPOT_COLUMNS = ['id', 'timestamp', 'price', 'volume', 'side', 'rpi']
     ('BTC_USDT_FUT', {'expiration': '2026-09-25'}, TRADING_COLUMNS),
     ('BTC_USD_IPERP', {}, TRADING_COLUMNS),
     ('BTC_USD_INVERSE-FUTURE', {'expiration': '2026-09-25'}, TRADING_COLUMNS),
-    ('BTC_USDC_SPOT', {}, SPOT_COLUMNS),
+    ('BTC_USDC_CRYPTO', {}, SPOT_COLUMNS),
 ])
 def test_raw_columns(bybit: pe.Bybit, product: str, product_specs: dict[str, Any], expected_columns: list[str]):
     data = bybit.get_batch_api().get_data(

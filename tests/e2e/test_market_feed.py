@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from pfund.entities.products.product_base import BaseProduct
+    from pfund_blocks.entities.products.product_base import BaseProduct
 
 import datetime
 
@@ -25,7 +25,7 @@ pytestmark = pytest.mark.network
     # DEPRECATED: ('BTC_USDC_FUTURE', '1h', {'expiration': '2026-09-25'}),  # USDC futures NO LONGER EXIST
     ('BTC_USD_IPERP', '1d', {}),  # inverse perpetual
     ('BTC_USD_INVERSE-FUTURE', '1t', {'expiration': '2026-09-25'}),  # inverse future
-    ('BTC_USDC_SPOT', '1t', {}),  # spot
+    ('BTC_USDC_CRYPTO', '1t', {}),  # spot
 ])
 def test_download_and_retrieve(
     tmp_path: Path,
@@ -45,7 +45,7 @@ def test_download_and_retrieve(
             # vendor columns are kept, only core columns are guaranteed
             core_cols = {'date', 'product', 'resolution', 'symbol', 'side', 'volume', 'price'}
             # Bybit spot CSVs don't ship a 'symbol' column
-            if _product.is_crypto():
+            if _product.is_crypto_spot():
                 core_cols.remove('symbol')
             assert core_cols <= set(df.columns)
         elif _resolution.is_quote():

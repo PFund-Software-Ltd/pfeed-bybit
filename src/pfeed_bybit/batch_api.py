@@ -4,13 +4,12 @@ from typing import TYPE_CHECKING, Any, ClassVar
 
 if TYPE_CHECKING:
     from httpx2 import Response
+    from pfund_blocks.entities.products.product_base import BaseProduct
     from pfund_blocks.resolution import Resolution
-    from pfund.venues.bybit.product import BybitProduct
 
 import datetime
 
 import polars as pl
-from pfund_blocks.enums.asset_type import AssetTypeModifier, CryptoAssetType
 
 # NOTE: do NOT trust the catalog in https://public.bybit.com/trading/, BTC_USDT_FUTs are missing,
 # e.g. BTCUSDT-22AUG25 is missing in the catalog but its url is valid: https://public.bybit.com/trading/BTCUSDT-22AUG25/
@@ -34,35 +33,31 @@ class BatchAPI:
     """Custom API for downloading data from Bybit"""
 
     DATA_NAMING_REGEX_PATTERNS: ClassVar[dict[str, str]] = {
-        CryptoAssetType.PERPETUAL: r"(USDT\/|PERP\/)$",  # USDT perp or USDC perp;
-        CryptoAssetType.FUTURE: r"-\d{2}[A-Z]{3}\d{2}\/$",  # USDC futures e.g. BTC-10NOV23/
-        AssetTypeModifier.INVERSE
-        + "-"
-        + CryptoAssetType.PERPETUAL: r"USD\/$",  # inverse perps;
-        AssetTypeModifier.INVERSE
-        + "-"
-        + CryptoAssetType.FUTURE: r"USD[A-Z]\d{2}\/$",  # inverse futures e.g. BTCUSDH24/
-        CryptoAssetType.CRYPTO: ".*",  # match everything since everything from https://public.bybit.com/spot is spot
+        "PERPETUAL": r"(USDT\/|PERP\/)$",  # USDT perp or USDC perp;
+        "FUTURE": r"-\d{2}[A-Z]{3}\d{2}\/$",  # USDC futures e.g. BTC-10NOV23/
+        "INVERSE-PERPETUAL": r"USD\/$",  # inverse perps;
+        "INVERSE-FUTURE": r"USD[A-Z]\d{2}\/$",  # inverse futures e.g. BTCUSDH24/
+        "CRYPTO": ".*",  # match everything since everything from https://public.bybit.com/spot is spot
     }
 
     @staticmethod
-    def _get_base_url(product: BybitProduct, resolution: Resolution) -> str:
+    def _get_base_url(product: BaseProduct, resolution: Resolution) -> str:
         if resolution.is_quote():
-            if product.is_crypto():
+            if product.is_crypto_spot():
                 return "https://quote-saver.bycsi.com/orderbook/spot"
             elif product.is_inverse():
                 return "https://quote-saver.bycsi.com/orderbook/inverse"
             else:
                 return "https://quote-saver.bycsi.com/orderbook/linear"
         else:
-            if product.is_crypto():
+            if product.is_crypto_spot():
                 return "https://public.bybit.com/spot"
             else:
                 return "https://public.bybit.com/trading"
 
     @staticmethod
     def _create_filename(
-        product: BybitProduct, resolution: Resolution, date: str | datetime.date
+        product: BaseProduct, resolution: Resolution, date: str | datetime.date
     ) -> str:
         if resolution.is_quote():
             from pfund_kit.utils.temporal import convert_to_date
@@ -71,11 +66,11 @@ class BatchAPI:
             # NOTE: somehow after this date, the orderbook (non-spot) levels are changed from 500 to 200
             cutoff_date = "2025-08-21"
             is_before_cutoff = convert_to_date(date) < convert_to_date(cutoff_date)
-            if not product.is_crypto() and is_before_cutoff:
+            if not product.is_crypto_spot() and is_before_cutoff:
                 orderbook_levels = 500
             return f"{date}_{product.symbol}_ob{orderbook_levels}.data.zip"
         else:
-            if product.is_crypto():
+            if product.is_crypto_spot():
                 return f"{product.symbol}_{date}.csv.gz"
             else:
                 return f"{product.symbol}{date}.csv.gz"
@@ -94,7 +89,7 @@ class BatchAPI:
         return response.raise_for_status().content
 
     def _create_url(
-        self, product: BybitProduct, resolution: Resolution, date: str | datetime.date
+        self, product: BaseProduct, resolution: Resolution, date: str | datetime.date
     ) -> str:
         base_url = self._get_base_url(product, resolution)
         filename = self._create_filename(product, resolution, date)
@@ -115,7 +110,7 @@ class BatchAPI:
         return df
 
     def get_data(
-        self, product: BybitProduct, resolution: Resolution, date: str | datetime.date
+        self, product: BaseProduct, resolution: Resolution, date: str | datetime.date
     ) -> pl.LazyFrame | None:
         if product.is_option():
             raise NotImplementedError("Bybit does not provide options data")

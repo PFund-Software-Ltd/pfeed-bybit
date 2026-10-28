@@ -15,8 +15,13 @@ dependencies = [
 [project.entry-points."pfeed.sources"]
 bybit = "pfeed_bybit:Bybit"
 
+[tool.uv]
+# FIXME: set it back to "14 days" when the package is stable
+exclude-newer = "0 days"
+exclude-newer-package = { uv_build = false, pfund-blocks = false, pfund-kit = false, pfeed = false }
+
 [build-system]
-requires = ["uv_build>=0.13.1,<0.14.0"]
+requires = ["uv_build>=0.13.5,<0.14.0"]
 build-backend = "uv_build"
 
 [tool.pytest]

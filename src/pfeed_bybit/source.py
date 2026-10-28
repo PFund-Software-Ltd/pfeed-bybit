@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar, Literal, cast
+from typing import TYPE_CHECKING, ClassVar, Literal, cast
 
 if TYPE_CHECKING:
     from pfeed.base.feed import BaseFeed
-    from pfund.venues.bybit.product import BybitProduct
 
 import httpx2
 from pfeed.dataflow.retry_policy import RetryPolicy
@@ -16,6 +15,7 @@ from pfeed.enums import (
 )
 from pfeed.source import BaseSource, SourceMetadata
 from pfund_blocks.enums.env import Environment
+from pfund_bybit.adapter import BybitAdapter
 
 from pfeed_bybit.batch_api import BatchAPI
 from pfeed_bybit.market.feed import BybitMarketFeed
@@ -46,6 +46,9 @@ class Bybit(BaseSource):
     )
     # timeouts and connection errors; HTTP error responses (e.g. 5xx) are not retried
     retry_policy: ClassVar[RetryPolicy] = RetryPolicy(retry_on=(httpx2.TransportError,))
+    # Bybit's symbol conventions come from pfund-bybit's adapter, shared with pfund's Bybit venue;
+    # products are created by BaseSource.create_product() with it
+    adapter: ClassVar[BybitAdapter] = BybitAdapter()  # ty: ignore[invalid-mutable-override]
 
     market_feed: BybitMarketFeed
 
@@ -80,9 +83,3 @@ class Bybit(BaseSource):
         if environment not in self._stream_apis:
             self._stream_apis[environment] = StreamAPI(env=environment)
         return self._stream_apis[environment]
-
-    @classmethod
-    def create_product(cls, basis: str, symbol: str = "", **specs: Any) -> BybitProduct:
-        from pfund.venues.bybit.venue import Bybit
-
-        return Bybit.create_product(basis, symbol=symbol, **specs)
