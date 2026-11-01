@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar, Literal, cast
+from typing import TYPE_CHECKING, ClassVar, Literal
 
 if TYPE_CHECKING:
     from pfeed.base.feed import BaseFeed
@@ -59,7 +59,7 @@ class Bybit(BaseSource):
     ):
         # APIs are set before super().__init__(), which creates the feeds
         self._batch_api: BatchAPI | None = None
-        self._stream_apis: dict[Environment, StreamAPI] = {}
+        self._stream_api: StreamAPI | None = None
         super().__init__(pipeline_mode=pipeline_mode, num_workers=num_workers)
 
     def get_batch_api(self) -> BatchAPI:
@@ -76,10 +76,13 @@ class Bybit(BaseSource):
             "LIVE",
         ],
     ) -> StreamAPI:
-        # the Literal in the signature already limits env to PAPER/LIVE
-        environment = cast(
-            "Literal[Environment.PAPER, Environment.LIVE]", Environment(env.upper())
-        )
-        if environment not in self._stream_apis:
-            self._stream_apis[environment] = StreamAPI(env=environment)
-        return self._stream_apis[environment]
+        environment = Environment(env.upper())
+        if environment not in (Environment.PAPER, Environment.LIVE):
+            raise ValueError(f"{self.name} streaming only supports PAPER and LIVE, got {environment}")
+        if self._stream_api is None:
+            self._stream_api = StreamAPI(env=environment)
+        elif self._stream_api.env != environment:
+            raise ValueError(
+                f"{self.name} stream API is already in {self._stream_api.env}, cannot stream in {environment}"
+            )
+        return self._stream_api

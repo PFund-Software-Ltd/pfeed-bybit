@@ -66,7 +66,7 @@ def test_download_and_retrieve(
 
     start_date, end_date = '2026-09-01', '2026-09-02'
     feed = bybit.market_feed
-    _product = feed.data_source.create_product(product, **product_specs)
+    _product = feed.source.create_product(product, **product_specs)
     io = pe.ParquetIO(base_path=str(tmp_path))
     for func in (feed.download, feed.retrieve):
         result = func(
