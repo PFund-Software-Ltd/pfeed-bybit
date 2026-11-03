@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, cast
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
+    from pfeed.base.requests import BaseStreamRequest
+    from pfeed.market.requests import MarketFeedStreamRequest
     from pfund_blocks.entities.products.product_base import BaseProduct
     from pfund_blocks.enums.env import Environment
     from pfund_blocks.resolution import Resolution
@@ -40,20 +42,16 @@ class StreamAPI(BaseStreamAPI):
     def get_supported_resolutions(self, product: BaseProduct) -> list[Resolution]:
         return BybitWebSocketAPI.get_supported_resolutions(product)
 
-    def add_channel(self, product: BaseProduct, resolution: Resolution) -> None:
-        ws_api = self._add_ws_api(product)
-        channel = ws_api.create_market_data_channel(product, resolution)
+    def add_channel(self, request: BaseStreamRequest) -> None:
+        req = cast("MarketFeedStreamRequest", request)
+        ws_api = self._add_ws_api(req.product)
+        channel = ws_api.create_market_data_channel(req.product, req.data_resolution)
         ws_api.add_channel(channel, channel_type="public")
 
-    def set_callback(
-        self,
-        callback: Callable[[Message], Awaitable[None] | None],
-        *,
-        include_raw_message: bool = True,
-    ) -> None:
-        super().set_callback(callback)
+    def set_callback(self, callback: Callable[[Message], Awaitable[None] | None], *, skip_parse_message: bool = False) -> None:
+        super().set_callback(callback, skip_parse_message=skip_parse_message)
         for ws_api in self._ws_apis.values():
-            ws_api.set_callback(callback, include_raw_message=include_raw_message)
+            ws_api.set_callback(callback, skip_parse_message=skip_parse_message)
 
     async def connect(self) -> None:
         for ws_api in self._ws_apis.values():

@@ -1,7 +1,7 @@
 [project]
 name = "pfeed-bybit"
 version = "0.0.1"
-description = "Official Bybit data source plugin for pfeed: historical and live market data from Bybit."
+description = "Bybit data source plugin for pfeed: historical and live market data from Bybit."
 readme = "README.md"
 authors = [
     { name = "softwareentrepreneer", email = "softwareentrepreneer+pfeed-bybit@gmail.com" }
