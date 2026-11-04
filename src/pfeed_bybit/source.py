@@ -22,7 +22,7 @@ from pfeed_bybit.market.feed import BybitMarketFeed
 from pfeed_bybit.stream_api import StreamAPI
 
 
-class Bybit(BaseSource):
+class Bybit[PipelineT: bool = Literal[False]](BaseSource[PipelineT]):
     Feeds: ClassVar[dict[DataCategory, type[BaseFeed]]] = {
         DataCategory.MARKET_DATA: BybitMarketFeed,
     }
@@ -50,17 +50,11 @@ class Bybit(BaseSource):
     # products are created by BaseSource.create_product() with it
     adapter: ClassVar[BybitAdapter] = BybitAdapter()  # ty: ignore[invalid-mutable-override]
 
-    market_feed: BybitMarketFeed
-
-    def __init__(
-        self,
-        pipeline_mode: bool = False,
-        num_workers: int | dict[DataCategory | str, int] | None = None,
-    ):
-        # APIs are set before super().__init__(), which creates the feeds
-        self._batch_api: BatchAPI | None = None
-        self._stream_api: StreamAPI | None = None
-        super().__init__(pipeline_mode=pipeline_mode, num_workers=num_workers)
+    market_feed: BybitMarketFeed[PipelineT]
+    # NOTE: class-level defaults instead of setting them in __init__, so they exist before BaseSource.__init__() creates the feeds,
+    # and Bybit doesn't override __init__, which would hide BaseSource's overloads that type the pipeline mode
+    _batch_api: BatchAPI | None = None
+    _stream_api: StreamAPI | None = None
 
     def get_batch_api(self) -> BatchAPI:
         if self._batch_api is None:

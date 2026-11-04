@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar, cast
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, cast
 
 if TYPE_CHECKING:
     from pfeed.market.requests.base_request import MarketFeedBaseRequest
@@ -15,9 +15,9 @@ from pfeed.market.requests.stream_request import MarketFeedStreamRequest
 from pfeed.streaming.market import MarketFeedStreamingMixin
 
 
-class BybitMarketFeed(
+class BybitMarketFeed[PipelineT: bool = Literal[False]](
     MarketFeedStreamingMixin[MarketFeedStreamRequest, MarketDataModel],
-    pe.MarketFeed["Bybit", "MarketFeedBaseRequest", MarketDataModel]
+    pe.MarketFeed["Bybit[PipelineT]", "MarketFeedBaseRequest", MarketDataModel, PipelineT]
 ):
     downloaded_data_date_cols: ClassVar[list[str]] = ["timestamp"]
     # Bybit's batch API serves one file per product per day
