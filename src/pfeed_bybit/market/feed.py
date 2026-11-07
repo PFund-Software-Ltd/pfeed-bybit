@@ -11,12 +11,9 @@ if TYPE_CHECKING:
 import pfeed as pe
 import polars as pl
 from pfeed.market.data_model import MarketDataModel
-from pfeed.market.requests.stream_request import MarketFeedStreamRequest
-from pfeed.streaming.market import MarketFeedStreamingMixin
 
 
 class BybitMarketFeed[PipelineT: bool = Literal[False]](
-    MarketFeedStreamingMixin[MarketFeedStreamRequest, MarketDataModel],
     pe.MarketFeed["Bybit[PipelineT]", "MarketFeedBaseRequest", MarketDataModel, PipelineT]
 ):
     downloaded_data_date_cols: ClassVar[list[str]] = ["timestamp"]

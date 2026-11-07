@@ -1,6 +1,6 @@
 [project]
 name = "pfeed-bybit"
-version = "0.0.1"
+version = "0.0.1.dev1"
 description = "Bybit data source plugin for pfeed: historical and live market data from Bybit."
 readme = "README.md"
 authors = [
@@ -8,8 +8,8 @@ authors = [
 ]
 requires-python = ">=3.13"
 dependencies = [
-    "pfeed>=0.0.20",
-    # "pfund-bybit>=0.0.1.dev1"
+    "pfeed>=0.0.21",
+    "pfund-bybit>=0.0.1"
 ]
 
 [project.entry-points."pfeed.sources"]
@@ -18,10 +18,10 @@ bybit = "pfeed_bybit:Bybit"
 [tool.uv]
 # FIXME: set it back to "14 days" when the package is stable
 exclude-newer = "0 days"
-exclude-newer-package = { uv_build = false, pfund-blocks = false, pfund-kit = false, pfeed = false }
+exclude-newer-package = { uv_build = false, pfund-blocks = false, pfund-kit = false, pfeed = false, pfund-bybit = false }
 
 [build-system]
-requires = ["uv_build>=0.13.6,<0.14.0"]
+requires = ["uv_build>=0.13.7,<0.14.0"]
 build-backend = "uv_build"
 
 [tool.pytest]

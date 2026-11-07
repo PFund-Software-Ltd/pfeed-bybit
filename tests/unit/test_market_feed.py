@@ -26,6 +26,7 @@ def create_message(channel: str, decoded_message: dict) -> Message:
         "message": decoded_message,
         "data": None,
         "error": None,
+        "extra": {},
     }
 
 
