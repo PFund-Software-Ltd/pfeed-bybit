@@ -1,6 +1,6 @@
 [project]
 name = "pfeed-bybit"
-version = "0.0.1.dev1"
+version = "0.0.1"
 description = "Bybit data source plugin for pfeed: historical and live market data from Bybit."
 readme = "README.md"
 authors = [
