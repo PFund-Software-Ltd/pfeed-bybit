@@ -23,8 +23,8 @@ depends-on = [
 [dependencies]
 
 [pypi-dependencies]
-pfeed = ">=0.0.21"
-pfund-bybit = ">=0.0.1"
+pfeed = ">=0.0.23"
+pfund-bybit = ">=0.0.3"
 
 [environments]
 default = ["py313", "dev", "test"]
@@ -34,13 +34,15 @@ py315 = ["py315", "test"]
 
 [feature.dev.pypi-dependencies]
 pfeed-bybit = { path = ".", editable = true }
+afterpython = ">=0.4.6"
+# pfeed = { path = "../..", editable = true }  # TEMP
 # pfund-bybit = { path = "../../../pfund/venues/pfund-bybit", editable = true }  # TEMP
-afterpython = ">=0.4.1"
 
 [feature.test.pypi-dependencies]
 pfeed-bybit = { path = ".", editable = true }
+# pfeed = { path = "../..", editable = true }  # TEMP
 # pfund-bybit = { path = "../../../pfund/venues/pfund-bybit", editable = true }  # TEMP
-pytest = ">=9.1.1"
+pytest = ">=9.2.0"
 pytest-mock = ">=3.17.0"
 pytest-xdist = ">=3.8.0"
 pytest-asyncio = ">=1.4.0"

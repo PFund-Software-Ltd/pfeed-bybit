@@ -8,8 +8,8 @@ authors = [
 ]
 requires-python = ">=3.13"
 dependencies = [
-    "pfeed>=0.0.21",
-    "pfund-bybit>=0.0.1"
+    "pfeed>=0.0.23",
+    "pfund-bybit>=0.0.3"
 ]
 
 [project.entry-points."pfeed.sources"]
