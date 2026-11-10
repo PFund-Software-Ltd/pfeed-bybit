@@ -1,104 +1,28 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
-    from pfund_blocks.entities.products.product_base import BaseProduct
-
-import datetime
-
-import pfeed as pe
-import polars as pl
 import pytest
-from pfeed.dataflow.result import RunResult
-from pfund_blocks.resolution import Resolution
+from pfeed.testing import FeedCase, MarketFeedE2ETests
+
+from pfeed_bybit import Bybit
 
 pytestmark = pytest.mark.network
 
 
-@pytest.mark.parametrize(('product', 'resolution', 'product_specs'), [
-    ('BTC_USDT_PERP', '1t', {}),  # USDT perpetual
-    ('BTC_USDT_FUT', '1s', {'expiration': '2026-09-25'}),  # USDT future
-    ('BTC_USDC_PERPETUAL', '1m', {}),  # USDC perpetual
-    # DEPRECATED: ('BTC_USDC_FUTURE', '1h', {'expiration': '2026-09-25'}),  # USDC futures NO LONGER EXIST
-    ('BTC_USD_IPERP', '1d', {}),  # inverse perpetual
-    ('BTC_USD_INVERSE-FUTURE', '1t', {'expiration': '2026-09-25'}),  # inverse future
-    ('BTC_USDC_CRYPTO', '1t', {}),  # spot
-])
-def test_download_and_retrieve(
-    tmp_path: Path,
-    bybit: pe.Bybit,
-    product: str,
-    resolution: str,
-    product_specs: dict[str, Any],
-):
-    def _assert_df(df: pl.DataFrame, _product: BaseProduct, start_date: str, end_date: str) -> None:
-        assert df is not None
-        assert df.height > 0
-        _resolution = Resolution(resolution)
-        assert df.columns[:3] == ['date', 'product', 'resolution']
-        if _resolution.is_bar():
-            assert df.columns == ['date', 'product', 'resolution', 'open', 'high', 'low', 'close', 'volume', 'n_data_points']
-        elif _resolution.is_tick():
-            # vendor columns are kept, only core columns are guaranteed
-            core_cols = {'date', 'product', 'resolution', 'symbol', 'side', 'volume', 'price'}
-            # Bybit spot CSVs don't ship a 'symbol' column
-            if _product.is_crypto_spot():
-                core_cols.remove('symbol')
-            assert core_cols <= set(df.columns)
-        elif _resolution.is_quote():
-            raise NotImplementedError('quote data is not supported yet')
-        assert df['date'].is_sorted()
-        if _resolution.is_bar():
-            assert df['date'].is_unique().all()  # sorted + unique = strictly increasing
-        assert df['resolution'].n_unique() == 1
-        assert df['product'].n_unique() == 1
-        assert df['resolution'][0] == str(_resolution)
-        # crypto trades 24/7, so every day in [start_date, end_date] should have data
-        expected_dates = pl.date_range(
-            datetime.date.fromisoformat(start_date),
-            datetime.date.fromisoformat(end_date),
-            eager=True,
-        ).to_list()
-        assert df['date'].dt.date().unique().sort().to_list() == expected_dates
-
+class TestBybitMarketFeed(MarketFeedE2ETests):
+    source = Bybit
     start_date, end_date = '2026-09-01', '2026-09-02'
-    feed = bybit.market_feed
-    _product = feed.source.create_product(product, **product_specs)
-    io = pe.ParquetIO(base_path=str(tmp_path))
-    for func in (feed.download, feed.retrieve):
-        result = func(
-            product=product,
-            resolution=resolution,
-            start_date=start_date,
-            end_date=end_date,
-            io=io,
-            **product_specs,
-        )
-        assert isinstance(result, RunResult)
-        assert result.success
-        data = result.data
-        assert isinstance(data, pl.LazyFrame)
-        df = data.collect()
-        _assert_df(df, _product, start_date, end_date)
-
-
-def test_download_missing_dates(tmp_path: Path, bybit: pe.Bybit):
+    cases = [
+        FeedCase('BTC_USDT_PERP', '1t'),  # USDT perpetual
+        FeedCase('BTC_USDT_FUT', '1s', {'expiration': '2026-09-25'}),  # USDT future
+        FeedCase('BTC_USDC_PERPETUAL', '1m'),  # USDC perpetual
+        # DEPRECATED: FeedCase('BTC_USDC_FUTURE', '1h', {'expiration': '2026-09-25'}),  # USDC futures NO LONGER EXIST
+        FeedCase('BTC_USD_IPERP', '1d'),  # inverse perpetual
+        FeedCase('BTC_USD_INVERSE-FUTURE', '1t', {'expiration': '2026-09-25'}),  # inverse future
+        FeedCase('BTC_USDC_CRYPTO', '1t'),  # spot
+    ]
     # BTCUSDT perpetual wasn't listed yet, Bybit has no files for these dates and must answer 404,
     # which BatchAPI turns into no data; any other status (e.g. 403) raises an HTTP error instead
-    result = bybit.market_feed.download(
-        product='BTC_USDT_PERP',
-        resolution='1t',
-        start_date='2020-01-01',
-        end_date='2020-01-02',
-        io=pe.ParquetIO(base_path=str(tmp_path)),
-    )
-    assert isinstance(result, RunResult)
-    assert not result.success
-    assert len(result.failed) == 2  # one dataflow per date
-    assert all(isinstance(error, ValueError) and 'produced no data' in str(error) for error in result.errors)
+    missing_dates_case = FeedCase('BTC_USDT_PERP', '1t', start_date='2020-01-01', end_date='2020-01-02')
 
 
 # TODO
