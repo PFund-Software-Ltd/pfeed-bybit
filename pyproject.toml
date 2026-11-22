@@ -8,7 +8,7 @@ authors = [
 ]
 requires-python = ">=3.13"
 dependencies = [
-    "pfeed>=0.0.23",
+    "pfeed>=0.0.25",
     "pfund-bybit>=0.0.3"
 ]
 
@@ -21,7 +21,7 @@ exclude-newer = "0 days"
 exclude-newer-package = { uv_build = false, pfund-blocks = false, pfund-kit = false, pfeed = false, pfund-bybit = false }
 
 [build-system]
-requires = ["uv_build>=0.13.7,<0.14.0"]
+requires = ["uv_build>=0.13.9,<0.14.0"]
 build-backend = "uv_build"
 
 [tool.pytest]

@@ -23,7 +23,7 @@ depends-on = [
 [dependencies]
 
 [pypi-dependencies]
-pfeed = ">=0.0.23"
+pfeed = ">=0.0.25"
 pfund-bybit = ">=0.0.3"
 
 [environments]
@@ -34,7 +34,7 @@ py315 = ["py315", "test"]
 
 [feature.dev.pypi-dependencies]
 pfeed-bybit = { path = ".", editable = true }
-afterpython = ">=0.4.6"
+afterpython = ">=0.5.3"
 # pfeed = { path = "../..", editable = true }  # TEMP
 # pfund-bybit = { path = "../../../pfund/venues/pfund-bybit", editable = true }  # TEMP
 

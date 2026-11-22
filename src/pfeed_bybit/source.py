@@ -9,12 +9,11 @@ import httpx2
 from pfeed.dataflow.retry_policy import RetryPolicy
 from pfeed.enums import (
     DataAccessType,
-    DataCategory,
     DataProviderType,
     DataType,
 )
 from pfeed.source import BaseSource, SourceMetadata
-from pfund_blocks.enums.env import Environment
+from pfund_blocks.enums import Environment, DataCategory
 from pfund_bybit.adapter import BybitAdapter
 
 from pfeed_bybit.batch_api import BatchAPI
@@ -48,7 +47,7 @@ class Bybit[PipelineT: bool = Literal[False]](BaseSource[PipelineT]):
     retry_policy: ClassVar[RetryPolicy] = RetryPolicy(retry_on=(httpx2.TransportError,))
     # Bybit's symbol conventions come from pfund-bybit's adapter, shared with pfund's Bybit venue;
     # products are created by BaseSource.create_product() with it
-    adapter: ClassVar[BybitAdapter] = BybitAdapter()  # ty: ignore[invalid-mutable-override]
+    adapter: ClassVar[BybitAdapter] = BybitAdapter()  # ty: ignore[incompatible-mutable-override]
 
     market_feed: BybitMarketFeed[PipelineT]
     # NOTE: class-level defaults instead of setting them in __init__, so they exist before BaseSource.__init__() creates the feeds,
